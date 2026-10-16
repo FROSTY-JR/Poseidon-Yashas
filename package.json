@@ -1,0 +1,8 @@
+{
+  "name": "poseidon-brand-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Poseidon branding studio website with a scroll-driven 3D opening",
+  "scripts": { "dev": "node scripts/serve.mjs", "start": "node scripts/serve.mjs" },
+  "engines": { "node": ">=18" }
+}
