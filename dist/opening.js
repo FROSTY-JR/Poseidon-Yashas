@@ -4,6 +4,7 @@ const sticky=opening.querySelector('.opening-sticky');
 const cards=[...opening.querySelectorAll('.scene-panel')];
 const copy=opening.querySelector('.opening-copy');
 const design=opening.querySelector('.opening-design');
+const intro=opening.querySelector('.opening-intro');
 const resolve=opening.querySelector('.opening-resolve');
 const surface=opening.querySelector('.opening-surface');
 const bar=opening.querySelector('.opening-timeline i');
@@ -23,19 +24,20 @@ opening.addEventListener('pointerleave',()=>{pointer.x=0;pointer.y=0;});
 measure();progress=target;
 function paint(p){
  const w=layout.width,h=layout.height,mobile=w<701;
- const light=smooth(.16,.34,p),ring=smooth(.13,.28,p),grid=smooth(.45,.62,p),exit=smooth(.76,.96,p);
+ const light=smooth(.43,.50,p),ring=smooth(.49,.58,p),grid=smooth(.68,.79,p),exit=smooth(.86,.98,p);
  const rgb=[mix(24,238,light),mix(37,234,light),mix(34,226,light)].map(Math.round);
  surface.style.background=`rgb(${rgb.join(',')})`;
  sticky.style.color=light>.5?'#20201c':'#eeeae2';
- copy.style.opacity=1-smooth(.04,.23,p);
- opening.querySelector('.opening-fallback').style.opacity=.75*(1-smooth(.07,.25,p));
- copy.style.transform=`translateY(calc(-35% - ${p*180}px)) scale(${1-p*.2})`;
- design.style.opacity=ring*(1-smooth(.42,.52,p));
- design.style.transform=`translate(-50%,-50%) scale(${mix(.78,1.06,smooth(.2,.52,p))})`;
- resolve.style.opacity=smooth(.79,.95,p);
+ copy.style.opacity=1-smooth(.13,.24,p);
+ opening.querySelector('.trident-poster').style.opacity=1-smooth(.05,.25,p);
+ intro.style.opacity=smooth(.24,.34,p)*(1-smooth(.40,.46,p));
+ copy.style.transform=`translate(-50%,-50%) scale(${1-p*.15})`;
+ design.style.opacity=ring*(1-smooth(.65,.70,p));
+ design.style.transform=`translate(-50%,-50%) scale(${mix(.78,1.06,smooth(.5,.65,p))})`;
+ resolve.style.opacity=smooth(.90,.98,p);
  resolve.style.translate=`0 ${(1-exit)*45}px`;
  bar.style.transform=`scaleX(${p})`;
- opening.querySelector('.opening-step').textContent=p<.2?'01 / THE DEPTH':p<.57?'02 / THE IDENTITY':'03 / THE EXPRESSION';
+ opening.querySelector('.opening-step').textContent=p<.24?'01 / THE DEPTH':p<.46?'02 / THE PERSPECTIVE':p<.79?'03 / THE IDENTITY':'04 / THE EXPRESSION';
  const drift=document.body.classList.contains('motion-paused')?0:Math.sin(ambient*.0003)*.045;
  cards.forEach((card,i)=>{
   const angle=i/cards.length*Math.PI*2+p*2.8+drift;
@@ -47,7 +49,7 @@ function paint(p){
   let z=mix(Math.sin(angle)*140,0,grid),rz=mix(Math.sin(angle)*18,0,grid),ryaw=mix(Math.cos(angle)*40,0,grid);
   let scale=mix(.8,mobile?1.05:1.18,grid),opacity=ring;
   if(i===4){x=mix(x,mobile?0:-w*.28,exit);y=mix(y,mobile?-h*.19:0,exit);scale=mix(scale,mobile?1.45:1.95,exit);rz=mix(rz,-6,exit);z=mix(z,0,exit);}
-  else{x*=1+exit*1.7;y*=1+exit*1.4;z+=exit*430;opacity*=1-smooth(.72,.88,p);}
+  else{x*=1+exit*1.7;y*=1+exit*1.4;z+=exit*430;opacity*=1-smooth(.86,.94,p);}
   card.style.transform=`translate(-50%,-50%) translate3d(${x}px,${y}px,${z}px) rotateY(${ryaw}deg) rotateZ(${rz}deg) scale(${scale})`;
   card.style.opacity=opacity;card.style.zIndex=z>0?'2':'0';
  });
@@ -60,7 +62,10 @@ function tick(now){
  const dt=Math.min(100,now-last||16);last=now;
  const paused=document.body.classList.contains('motion-paused');
  if(!paused&&!document.hidden)ambient+=dt;
- progress+= (target-progress)*(paused?1:1-Math.exp(-dt/95));
+ const direction=target<progress?-1:1;
+ const eased=(target-progress)*(1-Math.exp(-dt/(direction<0?620:320)));
+ const maximum=dt*.001*(direction<0?.18:.28);
+ progress+=paused?target-progress:clamp(eased,-maximum,maximum);
  if(Math.abs(target-progress)<.0001)progress=target;
  if(!reduce){paint(progress);threeScene?.render(progress,ambient,paused);}
  if(!document.hidden)requestAnimationFrame(tick);
@@ -99,28 +104,40 @@ async function createSculpture(){
   model.position.sub(centre);normalizer.add(model);normalizer.scale.setScalar(3.6/size.y);sculpture.add(normalizer);
   model.traverse(object=>{if(object.isMesh){object.geometry.computeBoundingSphere();object.castShadow=false;object.receiveShadow=false;}});
   renderer.domElement.dataset.model='poseidon-trident.glb';
+  const closeQuaternion=new T.Quaternion().setFromEuler(new T.Euler(.025,-.10,-.055));
+  const fullQuaternion=new T.Quaternion(),focus=new T.Vector3();
   let pointerX=0,pointerY=0;
   threeScene={
    resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);},
    render(p,time,paused){
-    const mobile=innerWidth<701;const docking=smooth(.08,.30,p);const after=scrollY>layout.start+layout.range+layout.height*.5;
+    const mobile=innerWidth<701;const docking=smooth(.39,.46,p),zoom=smooth(.025,.22,p),slide=smooth(.24,.36,p),turn=smooth(.22,.36,p);const after=scrollY>layout.start+layout.range+layout.height*.5;
     const opacity=after?(mobile?0:.6):(mobile?1-docking:mix(1,.6,docking));
     renderer.domElement.style.opacity=opacity;
     if(opacity<.01||document.hidden)return;
     pointerX=mix(pointerX,paused?0:pointer.x,.035);pointerY=mix(pointerY,paused?0:pointer.y,.035);
     const viewH=2*Math.tan(T.MathUtils.degToRad(19))*8,viewW=viewH*camera.aspect;
-    sculpture.position.set(after?viewW*.467:(mobile?viewW*.07:mix(viewW*.23,viewW*.467,docking)),after?0:(mobile?viewH*.18:0),0);
-    sculpture.scale.setScalar(after?.115:mobile?.52:mix(1.15,.115,docking));
-    const floatStrength=after?.015:(mobile?.045:.08)*(1-docking);
+    const fullScale=mobile?.52:1.15;
+    const closeScale=mobile?3.1:Math.min(9,viewW*1.04);
+    const scale=after?.115:mix(mix(closeScale,fullScale,zoom),.115,docking);
+    sculpture.scale.setScalar(scale);
+    fullQuaternion.setFromEuler(new T.Euler(.14+Math.sin(time*.00065)*.08+pointerY*.12, -.4+time*.00032+pointerX*.2,(after?-.2:-.28)+Math.sin(time*.0005)*.045));
+    sculpture.quaternion.copy(closeQuaternion).slerp(fullQuaternion,turn);
+    focus.set(0,1.50,0).multiplyScalar(scale*(1-zoom)).applyQuaternion(sculpture.quaternion);
+    const x=after?viewW*.467:mix((mobile?viewW*.07:viewW*.23)*slide,viewW*.467,docking);
+    const y=after?0:(mobile?viewH*.18*slide:0);
+    sculpture.position.set(x-focus.x,y-focus.y, -focus.z);
+    const floatStrength=(after?.015:(mobile?.045:.08)*(1-docking))*turn;
     sculpture.position.x+=Math.sin(time*.0006)*floatStrength;
     sculpture.position.y+=Math.sin(time*.00085)*floatStrength*1.5;
-    sculpture.rotation.set(.14+Math.sin(time*.00065)*.08+pointerY*.12, -.4+p*5+time*.00032+(after?scrollY*.00035:0)+pointerX*.2, (after?-.2:mix(-.28,.7,p))+Math.sin(time*.0005)*.045);
+    renderer.domElement.dataset.scale=scale.toFixed(3);
+    renderer.domElement.dataset.phase=zoom<1?'closeup':slide<1?'pullback':docking<1?'right':'docked';
     renderer.domElement.dataset.rotation=sculpture.rotation.y.toFixed(3);
     renderer.render(scene,camera);
    }
   };
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();renderer.domElement.style.display='none';document.body.classList.remove('webgl-ready');});
+  threeScene.render(progress,ambient,reduce);
   document.body.classList.add('webgl-ready');
- }catch(error){document.body.classList.add('webgl-fallback');console.info('3D unavailable; showing the illustrated Poseidon opening.');}
+ }catch(error){document.body.classList.add('webgl-fallback');console.info('3D unavailable; showing the trident poster.');}
 }
 createSculpture();

@@ -18,3 +18,17 @@
 @media(prefers-reduced-motion:reduce){.scroll-opening{height:auto;min-height:100svh}.opening-sticky{position:relative}.opening-orbit,.opening-design,.opening-resolve,.trident-canvas{display:none!important}.opening-fallback{display:block!important}.opening-copy{opacity:1!important;transform:translateY(-35%)!important}.opening-bottom .scroll-invite{animation:none}.tide-tracker{display:none}.opening-surface{background:var(--opening-dark)!important}.opening-sticky{color:var(--paper)!important}}
 
 .opening-bottom .scroll-invite{margin-left:auto}.model-credit a{text-decoration:underline;text-underline-offset:3px}.model-credit{font-size:10px;line-height:1.7}
+.scroll-opening{height:640svh}
+.opening-copy{left:50%;top:49%;width:96%;text-align:center;transform:translate(-50%,-50%);z-index:3}
+.opening-copy h1{font-family:Georgia,'Times New Roman',serif;font-size:16.8vw;font-weight:400;letter-spacing:-.065em;line-height:1;color:#ead9c3;margin:20px 0;white-space:nowrap}
+.opening-copy .opening-kicker{letter-spacing:.32em;font-size:9px}
+.opening-copy>p{font-size:8px;letter-spacing:.22em;max-width:none;margin-top:15px}
+.opening-intro{position:absolute;left:8%;top:50%;transform:translateY(-35%);z-index:6;opacity:0;pointer-events:none}
+.opening-intro>span{font-size:8px;letter-spacing:.12em}
+.opening-intro>p{font-size:clamp(70px,8.5vw,145px);letter-spacing:-.07em;line-height:.96;margin:24px 0}
+.opening-intro em{color:#e2bca0}.opening-intro>small{font-size:13px;line-height:1.6}
+.trident-poster{display:block;position:absolute;inset:0;z-index:5;pointer-events:none}
+.trident-poster .opening-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:none;opacity:1;display:block}
+.webgl-ready .trident-poster{visibility:hidden}
+@media(max-width:700px){.scroll-opening{height:590svh}.opening-copy{top:48%;left:50%;right:auto;width:98%;transform:translate(-50%,-50%)}.opening-copy h1{font-size:17.7vw;margin:20px 0}.opening-copy .opening-kicker{font-size:6px;letter-spacing:.16em}.opening-copy>p{font-size:5px;letter-spacing:.12em}.opening-intro{left:7%;right:7%;top:56%}.opening-intro>span{font-size:6px}.opening-intro>p{font-size:12.8vw}.opening-intro>small{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.scroll-opening{height:100svh}.opening-copy{transform:translate(-50%,-50%)!important}.opening-intro{display:none}.trident-poster{visibility:visible!important}}
