@@ -1,6 +1,6 @@
 # Poseidon — Independent Branding Studio
 
-A responsive branding-studio website with a scroll-driven 3D trident opening, an orbital artwork gallery, selected work, moving brand cards and rotating testimonials.
+A responsive branding-studio website with a scroll-driven 3D trident opening, an orbital artwork gallery, selected work, moving brand cards and rotating testimonials. The trident turns continuously and floats gently. The testimonial section stays pinned while scrolling advances through all three quotes; it also advances automatically while you pause scrolling. Scrolling upwards reverses the sequence.
 
 ## Run locally
 
@@ -52,3 +52,4 @@ The trident is “Poseidon Trident – Mythic Ocean Weapon” by Pigcraft, suppl
 Three.js and its loader use the MIT licence included in `dist/vendor/THREE-LICENSE.txt`. The repository's root licence applies to original website code, not to third-party models, photographs or other separately licensed assets.
 
 See `ASSET-SOURCES.md`, `ASSET-PROMPTS.md` and `POSEIDON-ASSET.md` for photography sources and generated-image prompts. User reference videos are not distributed with the website.
+

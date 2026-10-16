@@ -34,23 +34,52 @@ $$('dialog').forEach(d=>{d.querySelector('.dialog-close').addEventListener('clic
 $$('[data-brief]').forEach(b=>b.addEventListener('click',()=>openDialog($('#brief-dialog'))));
 $$('[data-project]').forEach(b=>b.addEventListener('click',()=>{const p=projects[Number(b.dataset.project)];$('#project-title').textContent=p.name;$('#project-image').src=p.image;$('#project-image').alt=p.name+' original concept campaign';$('#project-description').textContent=p.description;$('#project-tags').replaceChildren(...p.tags.map(t=>{const s=document.createElement('span');s.textContent=t;return s}));openDialog($('#project-dialog'));}));
 $('#project-enquire').addEventListener('click',()=>{closeDialog($('#project-dialog'));openDialog($('#brief-dialog'));});
-let motionPaused=reduced, voiceBusy=false, lastVoice=0;
+let motionPaused=reduced, voiceBusy=false, lastVoice=0, queuedVoice=null;
 const rotor=$('.voice-rotor');
 function showVoice(index){
- if(voiceBusy)return;
- voiceBusy=true;voice=(index+quotes.length)%quotes.length;
+ const requested=(index+quotes.length)%quotes.length;
+ if(voiceBusy){queuedVoice=requested;return;}
+ if(requested===voice)return;
+ voiceBusy=true;voice=requested;
  const update=()=>{const q=quotes[voice];$('#quote-text').textContent=q.text;$('#quote-name').textContent=q.name;$('#quote-initials').textContent=q.initials;$('#quote-role').textContent=q.role;$('#quote-logo').textContent=q.logo;$('.voices').style.background=q.color;$('#voice-count').textContent=String(voice+1).padStart(2,'0')+' / 03';$$('[data-voice]').forEach((b,i)=>{b.classList.toggle('active',i===voice);b.setAttribute('aria-pressed',i===voice)});$('.side-left img').src=['assets/portrait.jpg','assets/poseidon.webp','assets/hero.webp'][voice];$('.side-left img').alt=['Editorial portrait — illustrative imagery','Poseidon sculpture — concept imagery','Fashion portrait — concept imagery'][voice];$('.side-right img').src=['assets/architecture.jpg','assets/forme.webp','assets/ocean.jpg'][voice];$('.side-right img').alt='Illustrative brand mood imagery';};
  lastVoice=performance.now();
  if(reduced||motionPaused){update();voiceBusy=false;return;}
  rotor.classList.add('turn-out');
- setTimeout(()=>{update();rotor.classList.remove('turn-out');rotor.classList.add('turn-in');void rotor.offsetWidth;requestAnimationFrame(()=>requestAnimationFrame(()=>rotor.classList.remove('turn-in')));setTimeout(()=>voiceBusy=false,650);},460);
+ setTimeout(()=>{update();rotor.classList.remove('turn-out');rotor.classList.add('turn-in');void rotor.offsetWidth;requestAnimationFrame(()=>requestAnimationFrame(()=>rotor.classList.remove('turn-in')));setTimeout(()=>{voiceBusy=false;if(queuedVoice!==null){const next=queuedVoice;queuedVoice=null;showVoice(next);}},650);},460);
 }
 $('#prev-voice').addEventListener('click',()=>showVoice(voice-1));$('#next-voice').addEventListener('click',()=>showVoice(voice+1));$$('[data-voice]').forEach(b=>b.addEventListener('click',()=>showVoice(Number(b.dataset.voice))));
+// The document scrolls naturally while the testimonial stage stays in place.
+const voicesPanel=$('.voices');
+let voicesTrack=null,voiceStep=-1,lastScrollY=scrollY,lastScrollTime=0;
+if(!reduced){
+ voicesTrack=document.createElement('div');voicesTrack.className='voices-track';
+ voicesPanel.before(voicesTrack);voicesTrack.append(voicesPanel);
+ const sizeVoices=()=>{
+  voicesPanel.style.setProperty('--voices-top',`${Math.min(0,innerHeight-voicesPanel.offsetHeight)}px`);
+  voicesTrack.style.height=`${voicesPanel.offsetHeight+innerHeight*2.4}px`;
+ };
+ new ResizeObserver(sizeVoices).observe(voicesPanel);addEventListener('resize',sizeVoices);sizeVoices();
+}
+function syncScrollVoice(now){
+ if(!voicesTrack)return;
+ const r=voicesTrack.getBoundingClientRect(),top=Math.min(0,innerHeight-voicesPanel.offsetHeight);
+ const range=voicesTrack.offsetHeight-voicesPanel.offsetHeight;
+ const progress=Math.max(0,Math.min(1,(top-r.top)/Math.max(1,range)));
+ const active=r.top<=top+2&&r.bottom>=innerHeight-2;
+ const moved=Math.abs(scrollY-lastScrollY)>1;
+ const resumed=moved&&now-lastScrollTime>250;
+ if(moved){lastScrollY=scrollY;lastScrollTime=now;lastVoice=now;}
+ const step=Math.min(2,Math.floor(progress*3));
+ voicesTrack.dataset.step=String(step);
+ if(active&&(voiceStep!==step||resumed)){voiceStep=step;showVoice(step);}
+ if(!active)voiceStep=-1;
+}
 document.body.classList.toggle('motion-paused', reduced);
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>location.reload());
 let sceneTime=0, previousTime=0;const orbitCards=$$('.float-card');
 function animateScenes(now){
  const delta=Math.min(50,now-previousTime);previousTime=now;
+ syncScrollVoice(now);
  const scene=$('.growth-scene'),bounds=scene.getBoundingClientRect();
  if(!motionPaused&&!document.hidden){
  sceneTime+=delta;
@@ -59,7 +88,7 @@ function animateScenes(now){
  orbitCards.forEach((card,i)=>{const theta=sceneTime*.00019+i*Math.PI*2/orbitCards.length;const x=Math.cos(theta)*rx,y=Math.sin(theta)*ry+x*.22,depth=Math.sin(theta);card.style.transform=`translate(-50%,-50%) translate3d(${x}px,${y}px,${depth*100}px) rotateY(${Math.cos(theta)*47}deg) rotateZ(${-15+Math.sin(theta)*12}deg) scale(${.77+(depth+1)*.13})`;card.style.zIndex=depth>0?'3':'0';card.style.opacity=String(.65+(depth+1)*.175);});
  }
  const v=$('.voices').getBoundingClientRect();
- if(v.top<innerHeight*.65&&v.bottom>innerHeight*.35&&!$('.voices').matches(':hover, :focus-within')){if(now-lastVoice>6500)showVoice(voice+1);}else{lastVoice=now;}
+ if(v.top<innerHeight*.65&&v.bottom>innerHeight*.35&&!$('.voices').matches(':focus-within')&&now-lastScrollTime>1000){if(now-lastVoice>6500)showVoice(voice+1);}else{lastVoice=now;}
  }
  requestAnimationFrame(animateScenes);
 }

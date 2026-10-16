@@ -111,7 +111,11 @@ async function createSculpture(){
     const viewH=2*Math.tan(T.MathUtils.degToRad(19))*8,viewW=viewH*camera.aspect;
     sculpture.position.set(after?viewW*.467:(mobile?viewW*.07:mix(viewW*.23,viewW*.467,docking)),after?0:(mobile?viewH*.18:0),0);
     sculpture.scale.setScalar(after?.115:mobile?.52:mix(1.15,.115,docking));
-    sculpture.rotation.set(.14+pointerY*.12, -.4+p*5+(after?scrollY*.00035:Math.sin(time*.00025)*.13)+pointerX*.2, after?-.2:mix(-.28,.7,p));
+    const floatStrength=after?.015:(mobile?.045:.08)*(1-docking);
+    sculpture.position.x+=Math.sin(time*.0006)*floatStrength;
+    sculpture.position.y+=Math.sin(time*.00085)*floatStrength*1.5;
+    sculpture.rotation.set(.14+Math.sin(time*.00065)*.08+pointerY*.12, -.4+p*5+time*.00032+(after?scrollY*.00035:0)+pointerX*.2, (after?-.2:mix(-.28,.7,p))+Math.sin(time*.0005)*.045);
+    renderer.domElement.dataset.rotation=sculpture.rotation.y.toFixed(3);
     renderer.render(scene,camera);
    }
   };
