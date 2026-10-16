@@ -1,0 +1,3 @@
+# The website is already built. Deploy the folder containing index.html.
+[build]
+  publish = "dist"
